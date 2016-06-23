@@ -30,13 +30,14 @@
 # Copyright (c) 2005.-2006. Ivan Voras <ivoras@gmail.com>
 # Released under the Artistic License
 #
-
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
-from SocketServer import ThreadingMixIn
-from StringIO import StringIO
-import sys,urllib,re,urlparse
+from __future__ import print_function, absolute_import
+from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from six.moves.socketserver import ThreadingMixIn
+from six.moves import urllib
+from six import StringIO
+import sys, re, hashlib
 from time import time, timezone, strftime, localtime, gmtime
-import os, shutil, uuid, md5, mimetypes, base64
+import os, shutil, uuid, mimetypes, base64, six
 
 class Member:
     M_MEMBER = 1           
@@ -70,7 +71,7 @@ class FileMember(Member):
         p['creationdate'] = unixdate2iso8601(st.st_ctime)
         p['getlastmodified'] = unixdate2httpdate(st.st_mtime)
         p['displayname'] = self.name
-        p['getetag'] = md5.new(self.fsname).hexdigest()
+        p['getetag'] = hashlib.md5(self.fsname.encode('utf-8') if isinstance(self.fsname, six.text_type) else self.fsname).digest()
         if self.type == Member.M_MEMBER:
             p['getcontentlength'] = st.st_size
             p['getcontenttype'], z = mimetypes.guess_type(self.name)
@@ -88,7 +89,7 @@ class FileMember(Member):
     def sendData(self, wfile,bpoint=0,epoint=0):
         """Send the file to the client. Literally."""
         st = os.stat(self.fsname)
-        f = file(self.fsname, 'rb')
+        f = open(self.fsname, 'rb')
         writ = 0
         # for send Range xxx-xxx 
         if bpoint>0 and bpoint<st.st_size:
@@ -140,9 +141,9 @@ class DirCollection(FileMember, Collection):
         l = os.listdir(self.fsname) # obtain a copy of dirlist
         tcount=0
         for tmpi in l:
-        		if os.path.isfile(self.fsname+tmpi) == False:
-        				l[tcount]=l[tcount]+'/'
-        		tcount += 1
+                if os.path.isfile(self.fsname+tmpi) == False:
+                        l[tcount]=l[tcount]+'/'
+                tcount += 1
         r = []
         for f in l:
             if f[-1] != '/':
@@ -152,17 +153,17 @@ class DirCollection(FileMember, Collection):
             r.append(m)
         return r
 
-		# Return WebDav Root Dir info
+        # Return WebDav Root Dir info
     def rootdir(self):
-    	return self.fsname
-    	
+        return self.fsname
+        
     def findMember(self, name):
         """Search for a particular member."""
         l = os.listdir(self.fsname) # obtain a copy of dirlist
         tcount=0
         for tmpi in l:
                 if os.path.isfile(self.fsname+tmpi) == False:
-        				l[tcount]=l[tcount]+'/'
+                        l[tcount]=l[tcount]+'/'
                 tcount += 1
         if name in l:
             if name[-1] != '/':
@@ -193,8 +194,8 @@ class DirCollection(FileMember, Collection):
 
     def recvMember(self, rfile, name, size, req):
         """Receive (save) a member file"""
-        fname = os.path.join(self.fsname, urllib.unquote(name))
-        f = file(fname, 'wb')
+        fname = os.path.join(self.fsname, urllib.parse.unquote(name))
+        f = open(fname, 'wb')
         # if size=-1 it's Transfer-Encoding: Chunked mode, like OSX finder using this mode put data
         # so the file size need get here.
         if size == -2:
@@ -266,7 +267,7 @@ class Tag:
         del self.d[key]
 
     def __iter__(self):
-        return self.d.iterkeys()
+        return six.iterkeys(self.d)
 
     def __contains__(self, key):
         return key in self.d
@@ -303,15 +304,15 @@ class XMLDict_Parser:
         self.namespaces = {}
 
     def getnexttag(self):
-        ptag = self.xml.find('<', self.p)
+        ptag = self.xml.find(b'<', self.p)
         if ptag < 0:
             return None, None, self.xml[self.p:].strip()
         data = self.xml[self.p:ptag].strip()
         self.p = ptag
         self.tagbegin = ptag
-        p2 = self.xml.find('>', self.p+1)
+        p2 = self.xml.find(b'>', self.p+1)
         if p2 < 0:
-            raise "Malformed XML - unclosed tag?"
+            raise Exception("Malformed XML - unclosed tag?")
         tag = self.xml[ptag+1:p2]
         self.p = p2+1
         self.tagend = p2+1
@@ -422,7 +423,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
     def do_DELETE(self):
         if self.WebAuth():
             return         
-        path = urllib.unquote(self.path)
+        path = urllib.parse.unquote(self.path)
         if path == '':
             self.send_error(404, 'Object not found')
             self.send_header('Content-length', '0')
@@ -445,7 +446,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
     def do_MKCOL(self):
         if self.WebAuth():
             return 
-        path = urllib.unquote(self.path)
+        path = urllib.parse.unquote(self.path)
         if path != '':
             path = self.server.root.rootdir() + path
             if os.path.isdir(path) == False:
@@ -461,8 +462,8 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
     def do_MOVE(self):
         if self.WebAuth():
             return 
-        oldfile = self.server.root.rootdir() + urllib.unquote(self.path)
-        newfile = self.server.root.rootdir() + urlparse.urlparse(urllib.unquote(self.headers['Destination'])).path         
+        oldfile = self.server.root.rootdir() + urllib.parse.unquote(self.path)
+        newfile = self.server.root.rootdir() + urlparse.urlparse(urllib.parse.unquote(self.headers['Destination'])).path         
         if (os.path.isfile(oldfile)==True and os.path.isfile(newfile)==False): 
             shutil.move(oldfile,newfile)
         if (os.path.isdir(oldfile)==True and os.path.isdir(newfile)==False):
@@ -475,8 +476,8 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
     def do_COPY(self):
         if self.WebAuth():
             return 
-        oldfile = self.server.root.rootdir() + urllib.unquote(self.path)
-        newfile = self.server.root.rootdir() + urlparse.urlparse(urllib.unquote(self.headers['Destination'])).path 
+        oldfile = self.server.root.rootdir() + urllib.parse.unquote(self.path)
+        newfile = self.server.root.rootdir() + urlparse.urlparse(urllib.parse.unquote(self.headers['Destination'])).path 
         if (os.path.isfile(oldfile)==True):        #  and os.path.isfile(newfile)==False):  copy can rewrite.
             shutil.copyfile(oldfile,newfile)
         self.send_response(201, "Created")
@@ -552,7 +553,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
         w.write('<D:multistatus xmlns:D="DAV:" xmlns:Z="urn:schemas-microsoft-com:">\n')
 
         def write_props_member(w, m):
-            w.write('<D:response>\n<D:href>%s</D:href>\n<D:propstat>\n<D:prop>\n' % urllib.quote(m.virname))     #add urllib.quote for chinese
+            w.write('<D:response>\n<D:href>%s</D:href>\n<D:propstat>\n<D:prop>\n' % urllib.parse.quote(m.virname))     #add urllib.parse.quote for chinese
             props = m.getProperties()       # get the file or dir props 
             # For OSX Finder : getlastmodified,getcontentlength,resourceType
             if ('quota-available-bytes' in wished_props) or ('quota-used-bytes'in wished_props) or ('quota' in wished_props) or ('quotaused'in wished_props):
@@ -562,7 +563,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
                 props['quota-available-bytes'] = sDisk.f_bavail * sDisk.f_frsize
                 props['quota'] = sDisk.f_bavail * sDisk.f_frsize                                
             for wp in wished_props:
-                if props.has_key(wp) == False:
+                if wp not in props:
                     w.write('  <D:%s/>\n' % wp)
                 else:
                     w.write('  <D:%s>%s</D:%s>\n' % (wp, str(props[wp]), wp))
@@ -682,7 +683,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
 
     def path_elem(self):
         """Returns split path (see split_path()) and Member object of the last element"""
-        path = self.split_path(urllib.unquote(self.path))
+        path = self.split_path(urllib.parse.unquote(self.path))
         elem = self.server.root
         for e in path:
             elem = elem.findMember(e)
@@ -692,7 +693,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
 
     def path_elem_prev(self):
         """Returns split path (see split_path()) and Member object of the next-to-last element"""
-        path = self.split_path(urllib.unquote(self.path))
+        path = self.split_path(urllib.parse.unquote(self.path))
         elem = self.server.root
         for e in path[:-1]:
             elem = elem.findMember(e)
@@ -702,7 +703,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
      
      # disable log info output to screen    
     def log_message(self,format,*args):
-    	pass
+        pass
 
 class BufWriter:
     def __init__(self, w, debug=True):
@@ -713,7 +714,7 @@ class BufWriter:
     def write(self, s):
         if self.debug:
             sys.stderr.write(s)
-        self.buf.write(unicode(s,'utf-8'))              # add unicode(s,'utf-8') for chinese code.
+        self.buf.write(s.decode('utf-8') if isinstance(s, six.binary_type) else s)
         
     def flush(self):
         self.w.write(self.buf.getvalue().encode('utf-8'))
@@ -736,7 +737,7 @@ class DAVServer(ThreadingMixIn, HTTPServer):
     def finish_request(self,request,client_address):
         try:
             HTTPServer.finish_request(self, request, client_address)
-        except socket.error, e:
+        except socket.error as e:
             pass
 
 if __name__ == '__main__':
@@ -746,7 +747,7 @@ if __name__ == '__main__':
     import socket
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
-    print 'WebDav Server run at '+myaddr+':'+str(srvport)+'...'
+    print('WebDav Server run at http://%s:%s...' %(myaddr,srvport))
     server_address = ('', srvport)
     # WebDav Auth User/Password file 
     # if not this file ,the auth function disable.
@@ -754,7 +755,7 @@ if __name__ == '__main__':
     # or you can change your auth mode and file save format 
     userpwd = []
     try:
-        f = file('wdusers.conf', 'r')
+        f = open('wdusers.conf', 'r')
         for uinfo in f.readlines():
             uinfo = uinfo.replace('\n','')
             if len(uinfo)>2:
