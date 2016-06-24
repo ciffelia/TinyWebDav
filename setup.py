@@ -7,6 +7,7 @@ setup(
     version=version,
     author='Lai ChuJiang',
     py_modules = ['webdav'],
+    entry_points = {'console_scripts': ['webdav=webdav:main']},
     url='https://github.com/andrewleech/TinyWebDav',
     download_url='https://github.com/andrewleech/TinyWebDav/archive/gh-pages.zip',
     description='A Single File,Tiny, Python WebDav Server. Original package from https://github.com/wolf71/TinyWebDav',

@@ -740,7 +740,7 @@ class DAVServer(ThreadingMixIn, HTTPServer):
         except socket.error as e:
             pass
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-P", "--port", type=int, default=8000, help="port to serve on")
     parser.add_argument("-u", "--username", help="optional auth username")
@@ -778,3 +778,6 @@ if __name__ == '__main__':
     root = DirCollection(args.directory, '/')
     httpd = DAVServer(server_address, DAVRequestHandler, root, userpwd)
     httpd.serve_forever()       # todo: add some control over starting and stopping the server
+
+if __name__ == '__main__':
+    main()
