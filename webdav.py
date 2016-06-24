@@ -739,7 +739,7 @@ class DAVServer(ThreadingMixIn, HTTPServer):
         except socket.error, e:
             pass
 
-if __name__ == '__main__':
+def main():
     # WebDav TCP Port 
     srvport = 8000
     # Get local IP address
@@ -766,3 +766,6 @@ if __name__ == '__main__':
     root = DirCollection('./', '/')
     httpd = DAVServer(server_address, DAVRequestHandler, root, userpwd)
     httpd.serve_forever()       # todo: add some control over starting and stopping the server
+
+    if __name__ == '__main__':
+    main()
