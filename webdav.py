@@ -35,7 +35,7 @@ from six.moves.BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 from six.moves.socketserver import ThreadingMixIn
 from six.moves import urllib
 from six import StringIO
-import sys, re, hashlib
+import sys, re, argparse, hashlib
 from time import time, timezone, strftime, localtime, gmtime
 import os, shutil, uuid, mimetypes, base64, six
 
@@ -741,8 +741,17 @@ class DAVServer(ThreadingMixIn, HTTPServer):
             pass
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-P", "--port", type=int, default=8000, help="port to serve on")
+    parser.add_argument("-u", "--username", help="optional auth username")
+    parser.add_argument("-p", "--password", help="optional auth password")
+    parser.add_argument("-D", "--directory", default="./", help="local directory to serve")
+    args = parser.parse_args()
+
+
+
     # WebDav TCP Port 
-    srvport = 8000
+    srvport = args.port
     # Get local IP address
     import socket
     myname = socket.getfqdn(socket.gethostname())
@@ -754,6 +763,8 @@ if __name__ == '__main__':
     # file format: user:passwd\n user:passwd\n
     # or you can change your auth mode and file save format 
     userpwd = []
+    if args.username and args.password:
+        userpwd.append(base64.b64encode("%s:%s" % (args.username, args.password)))
     try:
         f = open('wdusers.conf', 'r')
         for uinfo in f.readlines():
@@ -764,6 +775,6 @@ if __name__ == '__main__':
         pass
     # first is Server root dir, Second is virtual dir
     # **** Change first ./ to your dir , etc :/mnt/flash/public 
-    root = DirCollection('./', '/')
+    root = DirCollection(args.directory, '/')
     httpd = DAVServer(server_address, DAVRequestHandler, root, userpwd)
     httpd.serve_forever()       # todo: add some control over starting and stopping the server
