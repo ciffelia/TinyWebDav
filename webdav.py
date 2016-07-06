@@ -761,7 +761,7 @@ if __name__ == '__main__':
     # or you can change your auth mode and file save format 
     userpwd = []
     if args.username and args.password:
-        userpwd.append(base64.b64encode("%s:%s" % (args.username, args.password)))
+        userpwd.append(base64.b64encode(("%s:%s" % (args.username, args.password)).encode()).decode())
     try:
         f = file('wdusers.conf', 'r')
         for uinfo in f.readlines():
