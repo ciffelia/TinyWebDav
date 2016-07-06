@@ -748,8 +748,6 @@ def main():
     parser.add_argument("-D", "--directory", default="./", help="local directory to serve")
     args = parser.parse_args()
 
-
-
     # WebDav TCP Port 
     srvport = args.port
     # Get local IP address
@@ -764,7 +762,7 @@ def main():
     # or you can change your auth mode and file save format 
     userpwd = []
     if args.username and args.password:
-        userpwd.append(base64.b64encode("%s:%s" % (args.username, args.password)))
+        userpwd.append(base64.b64encode(("%s:%s" % (args.username, args.password)).encode()).decode())
     try:
         f = open('wdusers.conf', 'r')
         for uinfo in f.readlines():
