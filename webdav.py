@@ -753,8 +753,9 @@ def main():
     srvport = args.port
     # Get local IP address
     import socket
-    myname = socket.getfqdn(socket.gethostname())
-    myaddr = socket.gethostbyname(myname)
+    # myname = socket.getfqdn(socket.gethostname())
+    # myaddr = socket.gethostbyname(myname)
+    myaddr = [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
     print('WebDav Server run at http://%s:%s...' %(myaddr,srvport))
     server_address = ('', srvport)
     # WebDav Auth User/Password file 
