@@ -1,12 +1,12 @@
 #!python2
 # coding:utf-8
 
-#   Tiny WebDav Server for Pythonista - IOS.  (Base on pandav WebDav server )
+#   Tiny WebDAV Server for Pythonista - IOS.  (Base on pandav WebDAV server )
 #
 #   (C)2013/11                                        By: Lai ChuJiang
 #
 #  this code can run not just Pythonista on IOS ,also run on OSX python.
-#  Support Client: Windows / OSX / other Webdav client for IOS,etc : goodreader / iWorks for ios 
+#  Support Client: Windows / OSX / other WebDAV client for IOS,etc : goodreader / iWorks for ios 
 #
 # 2013/11  Change Log:
 # 1. Combind all files to one file,so can using for Pythonista easy.
@@ -20,11 +20,11 @@
 # 8. Change the do_GET module, now support RANGE
 # 9. Change the do_PUB module, add Content-Length=0 support (create empty file) ,so the OSX Finder support. 
 #        *if not add empty file,the Finder copy files and then delete all this.
-#10. Add WebDav Basic Auth function,now you can set user & passwd
+#10. Add WebDAV Basic Auth function,now you can set user & passwd
 #         **using wdusers.conf file (just user:passwd), if not this file ,the Auth disable.
 #11. Fix the broken pipe error message
 #
-#   WebDav RFC: http://www.ics.uci.edu/~ejw/authoring/protocol/rfc2518.html
+#   WebDAV RFC: http://www.ics.uci.edu/~ejw/authoring/protocol/rfc2518.html
 #                   http://restpatterns.org/HTTP_Methods
 #
 # Base : pandav v0.2 
@@ -155,7 +155,7 @@ class DirCollection(FileMember, Collection):
             r.append(m)
         return r
 
-        # Return WebDav Root Dir info
+        # Return WebDAV Root Dir info
     def rootdir(self):
         return self.fsname
         
@@ -392,7 +392,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
 
      # User Auth 
      # if success ,return False; 
-     # Get WebDav User/Pass file : wdusers.conf
+     # Get WebDAV User/Pass file : wdusers.conf
      # file formate:   user:pass\n user:pass\n
     def WebAuth(self):
         if self.server.auth_enable:
@@ -404,7 +404,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
                 if AuthInfo in self.server.userpwd:
                     return False    # Auth success
             self.send_response(401,'Authorization Required')
-            self.send_header('WWW-Authenticate', 'Basic realm="WebDav Auth"')
+            self.send_header('WWW-Authenticate', 'Basic realm="WebDAV Auth"')
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             return True 
@@ -729,7 +729,7 @@ class DAVServer(ThreadingMixIn, HTTPServer):
     def __init__(self, addr, handler, root, userpwd):
         HTTPServer.__init__(self, addr, handler)
         self.root = root
-        self.userpwd = userpwd      # WebDav Auth user:passwd 
+        self.userpwd = userpwd      # WebDAV Auth user:passwd 
         if len(userpwd)>0:
             self.auth_enable = True
         else:
@@ -750,15 +750,15 @@ def main():
     parser.add_argument("-D", "--directory", default="./", help="local directory to serve (default: ./)")
     args = parser.parse_args()
 
-    # WebDav TCP Port 
+    # WebDAV TCP Port 
     srvport = args.port
     # Get local IP address
     # myname = socket.getfqdn(socket.gethostname())
     # myaddr = socket.gethostbyname(myname)
     myaddr = [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
-    print('WebDav Server run at http://%s:%s...' %(myaddr,srvport))
+    print('WebDAV Server is runnning at http://%s:%s...)' %(myaddr,srvport))
     server_address = ('', srvport)
-    # WebDav Auth User/Password file 
+    # WebDAV Auth User/Password file 
     # if not this file ,the auth function disable.
     # file format: user:passwd\n user:passwd\n
     # or you can change your auth mode and file save format 
