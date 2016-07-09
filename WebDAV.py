@@ -756,7 +756,7 @@ def main():
     # myname = socket.getfqdn(socket.gethostname())
     # myaddr = socket.gethostbyname(myname)
     myaddr = [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
-    print('WebDAV Server is runnning at http://%s:%s...)' %(myaddr,srvport))
+    print('WebDAV Server is runnning at http://%s:%s... (Ctrl-C to shutdown' %(myaddr,srvport))
     server_address = ('', srvport)
     # WebDAV Auth User/Password file 
     # if not this file ,the auth function disable.
