@@ -15,8 +15,8 @@ A Single File, Tiny, Python WebDAV Server.
 ```console
 $ wget https://raw.githubusercontent.com/prince-0203/TinyWebDav/gh-pages/WebDAV.py
 Opening: https://raw.githubusercontent.com/prince-0203/TinyWebDav/gh-pages/WebDAV.py
-Save as: WebDAV.py (30825 bytes)
-     30825  [100.00%]
+Save as: WebDAV.py (30835 bytes)
+     30835  [100.00%]
 
 $ python WebDAV.py -h
 usage: WebDAV.py [-h] [-P PORT] [-u USERNAME] [-p PASSWORD] [-D DIRECTORY]
