@@ -39,6 +39,7 @@ from six import StringIO
 import sys, re, argparse, hashlib
 from time import time, timezone, strftime, localtime, gmtime
 import os, shutil, uuid, mimetypes, base64, six
+import socket
 
 class Member:
     M_MEMBER = 1           
@@ -752,7 +753,6 @@ def main():
     # WebDav TCP Port 
     srvport = args.port
     # Get local IP address
-    import socket
     # myname = socket.getfqdn(socket.gethostname())
     # myaddr = socket.gethostbyname(myname)
     myaddr = [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
