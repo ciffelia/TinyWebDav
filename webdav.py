@@ -776,7 +776,14 @@ def main():
     # **** Change first ./ to your dir , etc :/mnt/flash/public 
     root = DirCollection(args.directory, '/')
     httpd = DAVServer(server_address, DAVRequestHandler, root, userpwd)
-    httpd.serve_forever()       # todo: add some control over starting and stopping the server
+
+    try:
+        httpd.serve_forever()       # todo: add some control over starting and stopping the server
+    except:
+        pass
+    finally:
+        print('Shutting down server...')
+        httpd.shutdown()
 
 if __name__ == '__main__':
     main()
