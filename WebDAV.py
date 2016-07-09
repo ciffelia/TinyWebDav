@@ -744,10 +744,10 @@ class DAVServer(ThreadingMixIn, HTTPServer):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-P", "--port", type=int, default=8000, help="port to serve on")
+    parser.add_argument("-P", "--port", type=int, default=8000, help="port to serve on (default:8000)")
     parser.add_argument("-u", "--username", help="optional auth username")
     parser.add_argument("-p", "--password", help="optional auth password")
-    parser.add_argument("-D", "--directory", default="./", help="local directory to serve")
+    parser.add_argument("-D", "--directory", default="./", help="local directory to serve (default: ./)")
     args = parser.parse_args()
 
     # WebDav TCP Port 
