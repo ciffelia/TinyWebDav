@@ -1,31 +1,32 @@
 #!python2
 # coding:utf-8
 
-#   Tiny WebDAV Server for Pythonista - IOS.  (Base on pandav WebDAV server )
+# Tiny WebDAV Server for Pythonista - iOS.  (Base on pandav WebDAV server )
 #
-#   (C)2013/11                                        By: Lai ChuJiang
+# (C)2013/11                                        By: Lai ChuJiang
+# (c) prince 2016
 #
-#  this code can run not just Pythonista on IOS ,also run on OSX python.
-#  Support Client: Windows / OSX / other WebDAV client for IOS,etc : goodreader / iWorks for ios 
+# this code can run not just Pythonista on iOS ,also run on macOS python.
+# Support Client: Windows / macOS / other WebDAV client for iOS,etc : goodreader / iWorks for iOS
 #
 # 2013/11  Change Log:
 # 1. Combind all files to one file,so can using for Pythonista easy.
-# 2. Add MKCOL(Create dir); MOVE(rename file);  DELETE(delete file or dir);  COPY (Copy file)   
+# 2. Add MKCOL(Create dir); MOVE(rename file);  DELETE(delete file or dir);  COPY (Copy file)
 # 3. Change some decode, Now it's can support Chinese.
-# 4. Pythonista(For IOS) not dircache module ,so change code,don't using this module.
-# 5. change DAV version from 1 to 2, so the OSX finder can write.   
+# 4. Pythonista(For iOS) not dircache module ,so change code,don't using this module.
+# 5. change DAV version from 1 to 2, so the macOS finder can write.
 # 6. for DAV version 2 support , add LOCK / UNLOCK fake support. (not real lock file)
-#       *** !!!! So Don't using > 1 client sametime write or delete same file. maybe lost files.
-# 7. Change the do_PROPFIND module, now it's simply & right for OSX 
+#    *** !!!! So Don't using > 1 client sametime write or delete same file. maybe lost files.
+# 7. Change the do_PROPFIND module, now it's simply & right for macOS
 # 8. Change the do_GET module, now support RANGE
-# 9. Change the do_PUB module, add Content-Length=0 support (create empty file) ,so the OSX Finder support. 
-#        *if not add empty file,the Finder copy files and then delete all this.
-#10. Add WebDAV Basic Auth function,now you can set user & passwd
-#         **using wdusers.conf file (just user:passwd), if not this file ,the Auth disable.
-#11. Fix the broken pipe error message
+# 9. Change the do_PUB module, add Content-Length=0 support (create empty file) ,so the macOS Finder support.
+#     *if not add empty file,the Finder copy files and then delete all this.
+# 10. Add WebDAV Basic Auth function,now you can set user & passwd
+#     **using wdusers.conf file (just user:passwd), if not this file, the Auth disable.
+# 11. Fix the broken pipe error message
 #
-#   WebDAV RFC: http://www.ics.uci.edu/~ejw/authoring/protocol/rfc2518.html
-#                   http://restpatterns.org/HTTP_Methods
+# WebDAV RFC: http://www.ics.uci.edu/~ejw/authoring/protocol/rfc2518.html
+#             http://restpatterns.org/HTTP_Methods
 #
 # Base : pandav v0.2 
 # Copyright (c) 2005.-2006. Ivan Voras <ivoras@gmail.com>
@@ -198,7 +199,7 @@ class DirCollection(FileMember, Collection):
         """Receive (save) a member file"""
         fname = os.path.join(self.fsname, urllib.parse.unquote(name))
         f = open(fname, 'wb')
-        # if size=-1 it's Transfer-Encoding: Chunked mode, like OSX finder using this mode put data
+        # if size=-1 it's Transfer-Encoding: Chunked mode, like macOS finder using this mode put data
         # so the file size need get here.
         if size == -2:
             l = int(rfile.readline(), 16)
@@ -418,7 +419,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Allow', 'GET, HEAD, POST, PUT, DELETE, OPTIONS, PROPFIND, PROPPATCH, MKCOL, LOCK, UNLOCK, MOVE, COPY')
         self.send_header('Content-length', '0')
         self.send_header('X-Server-Copyright', DAVRequestHandler.server_version)
-        self.send_header('DAV', '1, 2')            #OSX Finder need Ver 2, if Ver 1 -- read only
+        self.send_header('DAV', '1, 2')            #macOS Finder need Ver 2, if Ver 1 -- read only
         self.send_header('MS-Author-Via', 'DAV')
         self.end_headers()
 
@@ -557,7 +558,7 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
         def write_props_member(w, m):
             w.write('<D:response>\n<D:href>%s</D:href>\n<D:propstat>\n<D:prop>\n' % urllib.parse.quote(m.virname))     #add urllib.parse.quote for chinese
             props = m.getProperties()       # get the file or dir props 
-            # For OSX Finder : getlastmodified,getcontentlength,resourceType
+            # For macOS Finder : getlastmodified,getcontentlength,resourceType
             if ('quota-available-bytes' in wished_props) or ('quota-used-bytes'in wished_props) or ('quota' in wished_props) or ('quotaused'in wished_props):
                 sDisk = os.statvfs('/')
                 props['quota-used-bytes'] = (sDisk.f_blocks - sDisk.f_bavail) * sDisk.f_frsize
@@ -653,8 +654,8 @@ class DAVRequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-length', '0')
             self.end_headers()
             return
-        # for OSX finder, it's first send a 0 byte file,and you need response a 201 code,and then osx send real file.
-        # OSX finder don't using content-length.
+        # for macOS finder, it's first send a 0 byte file,and you need response a 201 code,and then macOS send real file.
+        # macOS finder don't using content-length.
         if ename == '.DS_Store':
             self.send_response(403, 'Forbidden')
             self.send_header('Content-length', '0')
