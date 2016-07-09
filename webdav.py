@@ -1,4 +1,5 @@
-# _*_ coding:utf-8 _*_
+#!python3
+# coding:utf-8
 
 #   Tiny WebDav Server for Pythonista - IOS.  (Base on pandav WebDav server )
 #
